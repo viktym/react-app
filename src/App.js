@@ -268,7 +268,7 @@ export default function PatchGrid() {
     };
 
     React.useEffect(() => {
-        fetch("/patches.json")
+        fetch("https://github.com/viktym/react-app/blob/master/dist/patches.json")
             .then(res => res.json())
             .then(
                 (result) => {
