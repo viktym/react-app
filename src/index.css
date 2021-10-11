@@ -2,3 +2,17 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.filterLabel {
+  #font-weight: bold;
+  text-transform: uppercase;
+  margin: 5px 5px
+}
+
+#root body {
+  font-family: inherit;
+  font-size: medium;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: normal;
+}
