@@ -7,6 +7,7 @@ import Alert from '@mui/material/Alert';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
 import {Button} from "@mui/material";
+import axios from 'axios';
 
 function escapeRegExp(value) {
     return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
@@ -268,23 +269,36 @@ export default function PatchGrid() {
     };
 
     React.useEffect(() => {
-        fetch("https://github.com/viktym/react-app/blob/master/dist/patches.json")
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    setIsLoaded(true);
-                    setLoadedRows(result);
-                    setRows(result);
-                },
-                // Note: it's important to handle errors here
-                // instead of a catch() block so that we don't swallow
-                // exceptions from actual bugs in components.
-                (error) => {
-                    setIsLoaded(true);
-                    setError(error);
-                }
-            )
+        axios.get('https://github.com/viktym/react-app/blob/master/dist/patches.json')
+            .then(function (response) {
+                setIsLoaded(true);
+                setLoadedRows(response.data);
+                setRows(response.data);
+            })
+            .catch(function (error) {
+                // handle error
+                setIsLoaded(true);
+                setError(error);
+            })
+        // fetch("https://github.com/viktym/react-app/blob/master/dist/patches.json")
+        //     .then(res => res.json())
+        //     .then(
+        //         (result) => {
+        //             setIsLoaded(true);
+        //             setLoadedRows(result);
+        //             setRows(result);
+        //         },
+        //         // Note: it's important to handle errors here
+        //         // instead of a catch() block so that we don't swallow
+        //         // exceptions from actual bugs in components.
+        //         (error) => {
+        //             setIsLoaded(true);
+        //             setError(error);
+        //         }
+        //     )
     }, [])
+
+
 
     if (error) {
         return <div>Error: {error.message}</div>;
