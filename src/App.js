@@ -269,7 +269,7 @@ export default function PatchGrid() {
     };
 
     React.useEffect(() => {
-        axios.get('https://github.com/viktym/react-app/blob/master/dist/patches.json')
+        axios.get('https://raw.githubusercontent.com/viktym/react-app/master/dist/patches.json')
             .then(function (response) {
                 setIsLoaded(true);
                 setLoadedRows(response.data);
