@@ -1,38 +1,31 @@
 import * as React from 'react';
-import { DataGrid} from '@mui/x-data-grid';
+import {DataGrid, useGridSlotComponentProps} from '@mui/x-data-grid';
 import { withStyles } from "@material-ui/core";
 import CustomizedToolbar from './components/customizedToolbar';
 import Chip from '@material-ui/core/Chip';
 import Alert from '@mui/material/Alert';
-import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
-import { styled } from '@mui/material/styles';
-import {Button} from "@mui/material";
-import axios from 'axios';
+import Link from '@mui/material/Link';
+import {makeStyles} from "@material-ui/styles";
+import TablePagination from '@mui/material/TablePagination'
+
+const useStyles = makeStyles({
+    grid: {
+        display: "flex",
+        flexDirection: "column-reverse"
+    }
+});
 
 function escapeRegExp(value) {
     return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 }
-
-const HtmlTooltip = styled(({ className, ...props }) => (
-    <Tooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-    [`& .${tooltipClasses.tooltip}`]: {
-        backgroundColor: '#f5f5f9',
-        color: 'rgba(0, 0, 0, 0.87)',
-        maxWidth: 220,
-        fontSize: theme.typography.pxToRem(12),
-        border: '1px solid #dadde9',
-    },
-}));
 
 const PatchDataGrid = withStyles({
     root: {
         minHeight: '32px',
         border: 'none',
         fontFamily: 'GraphikLight,Helvetica Neue,Helvetica,Arial,sans-serif',
-        //fontSize: "14px",
         fontSize: "14px",
-        color: '#676056',
+        color: '#505050',
 
         '& .MuiDataGrid-viewport': {
             width: 'fit-content',
@@ -57,9 +50,6 @@ const PatchDataGrid = withStyles({
             minHeight: 'auto!important',
             height: 'auto',
             display: 'flex',
-           // alignItems: 'center',
-            //alignSelf: 'stretch',
-
             '& > div': {
                 maxHeight: 'inherit',
                 width: '100%',
@@ -82,32 +72,31 @@ const PatchDataGrid = withStyles({
         },
 
         '& .MuiDataGrid-columnHeaderTitle': {
-          //  fontWeight: 'bold',
-            textTransform: 'uppercase'
+            textTransform: 'uppercase',
+            color: '#747474',
+            fontFamily: 'none!important'
         },
 
         '& .MuiDataGrid-cell': {
             overflowWrap: 'anywhere',
             padding: '5px 5px',
-           // margin: '5px 5px',
-           // alignItems: 'normal',
 
             '&--textRight div': {
-              //  textAlign: 'right',
                 justifyContent: 'flex-end'
             },
 
-            '&:last-of-type > div': {
-                //paddingRight: spacing(3)
-            },
-
             '& > div': {
-               // padding: '0.75em',
-              //  display: 'flex',
                 alignSelf: 'stretch',
-              //  alignItems: 'center'
             }
-        }
+        },
+
+        '& .MuiDataGrid-footerContainer': {
+            display: 'block',
+            '& p': {
+                margin: '0px',
+                fontSize: '14px'
+            }
+        },
     }
 
 })(DataGrid);
@@ -116,9 +105,11 @@ export default function PatchGrid() {
     const [error, setError] = React.useState(null);
     const [isLoaded, setIsLoaded] = React.useState(false);
     const [loadedRows, setLoadedRows] = React.useState([]);
+    const [qptVersion, setQptVersion] = React.useState('');
     const [rows, setRows] = React.useState([]);
     const [selectedReleases, setSelectedReleases] = React.useState([]);
     const [selectedCategories, setSelectedCategories] = React.useState([]);
+    const classes = useStyles();
 
     const columns = [
             {
@@ -148,7 +139,7 @@ export default function PatchGrid() {
                          {params.getValue(params.id, 'replacedWith') && <span>
                              <br/><br/>
                              <Alert variant="outlined"
-                                    style={{width: "300px", padding:"0px 5px"}}
+                                    style={{width: "325px", padding:"0px 5px"}}
                                     severity="warning">
                                    <b>Deprecated!</b>  Use {params.getValue(params.id, 'replacedWith')} instead
                               </Alert>
@@ -165,32 +156,10 @@ export default function PatchGrid() {
 
                              </span>
                          }
-
-
-                         {/*{params.getValue(params.id, 'releases').map(function (release) {*/}
-                         {/*   return <Chip key={release}*/}
-                         {/*                style={{margin: "1px 1px"}}*/}
-                         {/*                label={release}*/}
-                         {/*                size="small"*/}
-                         {/*                variant="outlined"*/}
-                         {/*                color={selectedReleases.includes(release) ? 'primary' : 'default'}*/}
-                         {/*   />*/}
-                         {/*})}*/}
                     </div>
                     </>
                 )
             },
-            // {
-            //     field: 'categories',
-            //     headerName: 'Categories',
-            //     width: 130,
-            //     sortable: false,
-            //     renderCell: (params) => (
-            //         <div style={{whiteSpace: "pre-line"}}>
-            //             {params.value.join('\n')}
-            //         </div>
-            //     )
-            // },
             {
                 field: 'releases',
                 headerName: 'Compatible Releases',
@@ -211,26 +180,24 @@ export default function PatchGrid() {
                 )
             },
         {
-            field: 'details',
+            field: 'components',
             headerName: 'Details',
-            width: 250,
+            width: 260,
             sortable: false,
             renderCell: (params) => (
                 <div style={{whiteSpace: "pre-line"}}>
-                    Origin:<br/>
-                    - {params.getValue(params.id, 'origin')}<br/>
-
-                    <HtmlTooltip
-                        title={
-                            <React.Fragment>
-                                <div style={{whiteSpace: "pre-line"}}>
-                                    {params.value}
-                                </div>
-                            </React.Fragment>
-                        }
-                    >
-                        <Button>Affected components</Button>
-                    </HtmlTooltip>
+                    <span className="smallHeader">Origin:</span><br/>
+                    - {params.getValue(params.id, 'origin')}<br/><br/>
+                    {params.value.length && <>
+                        <span style={{color: '#747474'}}>Affected Components:</span><br/>
+                        {params.value.map(function (component) {
+                            return '- ' + component + '\n';
+                        })}
+                    </>
+                    }
+                    {params.getValue(params.id, 'link') && <>
+                        <br/><Link href={params.getValue(params.id, 'link')} target="_blank" variant="body2" underline="none">Steps to reproduce</Link>
+                    </>}
                 </div>
             )
         },
@@ -243,8 +210,10 @@ export default function PatchGrid() {
         const filteredRows = loadedRows.filter((row) => {
             const hasCategories = filters['categories'].length === 0 ||
                 row['categories'].filter(x => filters['categories'].includes(x)).length > 0;
+
             const hasReleases = filters['releases'].length === 0 ||
                 row['releases'].filter(x => filters['releases'].includes(x)).length > 0;
+
             const hasSearchKeyword = filters['searchKeyword'] === '' ||
                 Object.keys(row).some((field) => {
                     return (new RegExp(escapeRegExp(filters['searchKeyword']), 'i')).test(row[field].toString());
@@ -268,37 +237,49 @@ export default function PatchGrid() {
         return result;
     };
 
+    function CustomPagination() {
+        const { state, apiRef, options } = useGridSlotComponentProps();
+        return (
+            <div style={{justifyContent:"space-between", display:"flex", alignItems: "center", border:"1px red"}}>
+                <Alert variant="outlined"
+                       style={{width: "300px", padding:"0px 5px", border:"0px"}}
+                       severity="info">
+                    magento/quality-patches version {qptVersion}
+                </Alert>
+                <table className={"MuiTablePagination-root"}><tbody><tr>
+                <TablePagination
+                    style={{border: "none"}}
+                    count={state.pagination.rowCount}
+                    page={state.pagination.page}
+                    onPageChange={(event, value) => apiRef.current.setPage(value)}
+                    rowsPerPage={options.pageSize}
+                    rowsPerPageOptions={[100]}
+                />
+                </tr></tbody></table>
+            </div>
+        );
+    }
+
     React.useEffect(() => {
-        axios.get('https://raw.githubusercontent.com/viktym/react-app/master/dist/patches.json')
-            .then(function (response) {
-                setIsLoaded(true);
-                setLoadedRows(response.data);
-                setRows(response.data);
-            })
-            .catch(function (error) {
-                // handle error
-                setIsLoaded(true);
-                setError(error);
-            })
-        // fetch("https://github.com/viktym/react-app/blob/master/dist/patches.json")
-        //     .then(res => res.json())
-        //     .then(
-        //         (result) => {
-        //             setIsLoaded(true);
-        //             setLoadedRows(result);
-        //             setRows(result);
-        //         },
-        //         // Note: it's important to handle errors here
-        //         // instead of a catch() block so that we don't swallow
-        //         // exceptions from actual bugs in components.
-        //         (error) => {
-        //             setIsLoaded(true);
-        //             setError(error);
-        //         }
-        //     )
+        //fetch("https://raw.githubusercontent.com/viktym/react-app/master/dist/patches-info.json")
+        fetch("./patches-info.json")
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    setIsLoaded(true);
+                    setLoadedRows(result['patches']);
+                    setRows(result['patches']);
+                    setQptVersion(result['version']);
+                },
+                // Note: it's important to handle errors here
+                // instead of a catch() block so that we don't swallow
+                // exceptions from actual bugs in components.
+                (error) => {
+                    setIsLoaded(true);
+                    setError(error);
+                }
+            )
     }, [])
-
-
 
     if (error) {
         return <div>Error: {error.message}</div>;
@@ -306,25 +287,29 @@ export default function PatchGrid() {
         return <div>Loading...</div>;
     } else {
         return (
-            <div style={{height:'1500px', width: '100%'}}>
-                <PatchDataGrid
-                    components={{ Toolbar: CustomizedToolbar }}
-                    rows={rows}
-                    autoHeight={false}
-                    rowHeight={0}
-                    pageSize={20}
-                    rowsPerPageOptions={[20]}
-                    columns={columns}
-                    componentsProps={{
-                        toolbar: {
-                            categories: getUniqueValues(loadedRows, 'categories'),
-                            releases: getUniqueValues(loadedRows, 'releases').reverse(),
-                            filtersOnChange: applyFilters,
-                        },
-                    }}
-                    disableColumnMenu
+            <>
+                <CustomizedToolbar
+                    categories={getUniqueValues(loadedRows, 'categories')}
+                    releases={getUniqueValues(loadedRows, 'releases').reverse()}
+                    filtersOnChange={applyFilters}
                 />
-            </div>
+                <div style={{height:'1000px', width: '100%'}}>
+                    <PatchDataGrid
+                        pagination={true}
+                        components={{
+                            Pagination: CustomPagination
+                        }}
+                        className={classes.grid}
+                        rows={rows}
+                        autoHeight={false}
+                        rowHeight={0}
+                        pageSize={100}
+                        rowsPerPageOptions={[100]}
+                        columns={columns}
+                        disableColumnMenu
+                    />
+                </div>
+            </>
         );
     }
 }

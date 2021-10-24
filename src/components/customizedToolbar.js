@@ -86,19 +86,6 @@ const CustomizedToolbar = props => {
         applyFilters({'releases': [...set]});
     };
 
-    // const toggleRelease = id => {
-    //     const set = new Set(selectedReleases);
-    //     alert(id);
-    //     if (selectedReleases.has(id)) {
-    //         set.delete(id);
-    //         setSelectedReleases(set);
-    //     } else {
-    //         set.add(id);
-    //         setSelectedReleases(set);
-    //     }
-    //     applyFilters({'releases': [...set]});
-    // };
-
     function applyFilters(filters) {
         props.filtersOnChange({
             'categories': 'categories' in filters ? filters['categories'] : [...selectedCategories],
@@ -132,29 +119,16 @@ const CustomizedToolbar = props => {
                         ),
                     }}
                 />
+
             </div>
 
-            {/*<div className="filterLabel">Release:</div>*/}
-            {/*{props.releases.map(function (release) {*/}
-            {/*    return <StyledButton*/}
-            {/*        key={release}*/}
-            {/*        color="primary"*/}
-            {/*        size="small"*/}
-            {/*        variant={selectedReleases.has(release) ? 'contained' : 'outlined'}*/}
-            {/*        onClick={() => toggleRelease(release)}*/}
-            {/*        disableElevation*/}
-            {/*    >*/}
-            {/*        {release}*/}
-            {/*    </StyledButton>*/}
-            {/*})}*/}
-
             <Autocomplete
-                style={{margin: "0px 5px 20px 5px", width: 500}}
+                style={{margin: "0px 0px 20px 5px", width: 500}}
                 multiple
                 disableCloseOnSelect
                 id="tags-standard"
                 options={props.releases}
-               // getOptionLabel={(option) => option.title}
+                // getOptionLabel={(option) => option.title}
                 onChange={(event, newInputValue) => {
                     setReleases(newInputValue);
                 }}
